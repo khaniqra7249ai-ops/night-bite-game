@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Night Bite Burger Catch</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: #fff;
+  text-align: center;
+}
+#game {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+.burger {
+  position: absolute;
+  top: -60px;
+  font-size: 40px;
+  cursor: pointer;
+}
+#info {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  font-size: 18px;
+}
+#overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+button {
+  padding: 12px 20px;
+  font-size: 16px;
+  margin-top: 15px;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div id="game">
+  <div id="info">Caught: <span id="count">0</span> / 50</div>
+</div>
+
+<div id="overlay"></div>
+
+<script>
+let caught = 0;
+let speed = 2000;
+let gameInterval;
+const game = document.getElementById("game");
+const countEl = document.getElementById("count");
+const overlay = document.getElementById("overlay");
+
+function randomCode() {
+  return "NB-" + Math.random().toString(36).substring(2,7).toUpperCase();
+}
+
+function updateSpeed() {
+  if (caught >= 40) speed = 600;
+  else if (caught >= 30) speed = 800;
+  else if (caught >= 20) speed = 1100;
+  else if (caught >= 10) speed = 1500;
+}
+
+function dropBurger() {
+  const burger = document.createElement("div");
+  burger.className = "burger";
+  burger.innerText = "🍔";
+  burger.style.left = Math.random() * (window.innerWidth - 50) + "px";
+  game.appendChild(burger);
+
+  let top = -60;
+  const fall = setInterval(() => {
+    top += 5;
+    burger.style.top = top + "px";
+    if (top > window.innerHeight) {
+      clearInterval(fall);
+      endGame(false);
+    }
+  }, 20);
+
+  burger.onclick = () => {
+    clearInterval(fall);
+    burger.remove();
+    caught++;
+    countEl.innerText = caught;
+    updateSpeed();
+    if (caught === 50) endGame(true);
+  };
+}
+
+function startGame() {
+  gameInterval = setInterval(dropBurger, speed);
+}
+
+function endGame(win) {
+  clearInterval(gameInterval);
+  overlay.style.display = "flex";
+  if (win) {
+    const code = randomCode();
+    overlay.innerHTML = `
+      <h1>🎉 YOU WON! 🎉</h1>
+      <p>10% Discount Code:</p>
+      <h2>${code}</h2>
+      <a href="https://wa.me/917738628567?text=Hi%20Night%20Bite!%20I%20won%20the%2050%20Burger%20Challenge.%20My%20code%20is%20${code}%20and%20I%20want%20to%20order."
+      target="_blank">
+      <button>Order on WhatsApp</button></a>
+    `;
+  } else {
+    overlay.innerHTML = `
+      <h1>❌ GAME OVER</h1>
+      <p>Try again to win 10% OFF 🍔</p>
+      <button onclick="location.reload()">Restart</button>
+    `;
+  }
+}
+
+startGame();
+</script>
+
+</body>
+</html>
