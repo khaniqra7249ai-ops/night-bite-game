@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Night Bite Burger Catch</title>
 <style>
 body {
@@ -20,14 +21,16 @@ body {
 .burger {
   position: absolute;
   top: -60px;
-  font-size: 40px;
+  font-size: 8vw; /* screen width ke hisaab se size */
+  max-font-size: 60px; /* zyada bada na ho */
   cursor: pointer;
 }
 #info {
   position: fixed;
   top: 10px;
   left: 10px;
-  font-size: 18px;
+  font-size: 4vw; /* responsive info text */
+  max-font-size: 18px;
 }
 #overlay {
   display: none;
@@ -39,10 +42,15 @@ body {
   flex-direction: column;
 }
 button {
-  padding: 12px 20px;
-  font-size: 16px;
-  margin-top: 15px;
+  padding: 3vw 5vw; /* responsive button */
+  font-size: 4vw;
+  max-font-size: 16px;
+  margin-top: 4vw;
   cursor: pointer;
+}
+.burger {
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 </style>
 </head>
@@ -56,50 +64,70 @@ button {
 
 <script>
 let caught = 0;
-let speed = 2000;
+let speed = 2000; // initial drop interval
 let gameInterval;
 const game = document.getElementById("game");
 const countEl = document.getElementById("count");
 const overlay = document.getElementById("overlay");
 
+// Random discount code
 function randomCode() {
   return "NB-" + Math.random().toString(36).substring(2,7).toUpperCase();
 }
 
+// Update drop speed based on caught burgers
 function updateSpeed() {
   if (caught >= 40) speed = 600;
   else if (caught >= 30) speed = 800;
   else if (caught >= 20) speed = 1100;
   else if (caught >= 10) speed = 1500;
+
+  clearInterval(gameInterval); // purana interval clear karo
+  gameInterval = setInterval(dropBurger, speed); // naya interval set karo
 }
 
+// Drop one burger
 function dropBurger() {
   const burger = document.createElement("div");
   burger.className = "burger";
   burger.innerText = "🍔";
+
+  // Responsive size
+  burger.style.fontSize = Math.min(window.innerWidth * 0.08, 60) + "px";
   burger.style.left = Math.random() * (window.innerWidth - 50) + "px";
+  burger.style.top = "-60px";
+  burger.style.touchAction = "manipulation"; // mobile fix
   game.appendChild(burger);
 
+  // Burger fall speed
   let top = -60;
+  let fallSpeed = 5 + caught * 0.3; 
   const fall = setInterval(() => {
-    top += 5;
+    top += fallSpeed;
     burger.style.top = top + "px";
+
     if (top > window.innerHeight) {
       clearInterval(fall);
       endGame(false);
     }
   }, 20);
 
-  burger.onclick = () => {
+  // Catch burger
+  function catchBurger(e) {
+    e.preventDefault();
     clearInterval(fall);
     burger.remove();
     caught++;
     countEl.innerText = caught;
-    updateSpeed();
+    updateSpeed(); 
     if (caught === 50) endGame(true);
-  };
+  }
+
+  burger.addEventListener("click", catchBurger);
+  burger.addEventListener("touchstart", catchBurger);
 }
 
+// Start game
 function startGame() {
   gameInterval = setInterval(dropBurger, speed);
 }
@@ -126,6 +154,7 @@ function endGame(win) {
   }
 }
 
+// Start the game
 startGame();
 </script>
 
